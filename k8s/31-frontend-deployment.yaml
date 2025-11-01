@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: pedrobrantis/frontend:latest
+          image: gillrosas22/ecommerce:v3
           imagePullPolicy: Always
           ports:
             - containerPort: 80
