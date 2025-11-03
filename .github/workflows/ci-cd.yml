@@ -51,28 +51,26 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 6️⃣ Build e push da imagem Docker
+      # 6️⃣ Build e push da imagem Docker com tag única
       - name: Build e push da imagem Docker
         run: |
-          docker build --pull -t gillrosas22/ecommerce:latest ./client
-          docker push gillrosas22/ecommerce:latest
+          IMAGE_TAG=${{ github.run_number }}
+          docker build -t gillrosas22/ecommerce:$IMAGE_TAG ./client
+          docker push gillrosas22/ecommerce:$IMAGE_TAG
 
-      # 7️⃣ Copiar build Angular diretamente para EC2
-      - name: Copiar build Angular para EC2
-        uses: appleboy/scp-action@v0.1.4
+      # 7️⃣ Conecta na EC2 e atualiza deployment k3s
+      - name: Atualizar deployment k3s na EC2
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.AWS_HOST }}
           username: ubuntu
           key: ${{ secrets.AWS_PRIVATE_KEY }}
-          source: "client/dist/**"
-          target: "/home/ubuntu/angular-dist/"
-
-      # 8️⃣ Conecta na EC2 e atualiza deployment Kubernetes
-      - name: Atualizar deployment no Kubernetes via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.AWS_HOST }}
-          username: ubuntu
-          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          port:22
           script: |
-           
+            # Forçar o k3s a usar a nova imagem
+            export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+            sudo chmod 644 $KUBECONFIG
+
+            IMAGE_TAG=${{ github.run_number }}
+            sudo kubectl set image deployment/frontend frontend=gillrosas22/ecommerce:$IMAGE_TAG -n app-demo
+            sudo kubectl rollout status deployment/frontend -n app-demo
