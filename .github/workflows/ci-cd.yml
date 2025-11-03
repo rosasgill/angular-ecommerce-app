@@ -66,10 +66,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_PRIVATE_KEY }}
           script: |
-            # Forçar o k3s a usar a nova imagem
+            # Configura k3s
             export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
             sudo chmod 644 $KUBECONFIG
 
             IMAGE_TAG=${{ github.run_number }}
-            sudo kubectl set image deployment/frontend frontend=gillrosas22/ecommerce:$IMAGE_TAG -n app-demo
+            # Atualiza o container correto 'web' no Deployment 'frontend'
+            sudo kubectl set image deployment/frontend web=gillrosas22/ecommerce:$IMAGE_TAG -n app-demo
             sudo kubectl rollout status deployment/frontend -n app-demo
