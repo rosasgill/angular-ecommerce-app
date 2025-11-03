@@ -3,7 +3,7 @@ name: Deploy Angular to AWS EC2
 on:
   push:
     branches:
-      - master  # ou master, dependendo do seu branch principal
+      - master  
 
 jobs:
   build-and-deploy:
@@ -20,7 +20,7 @@ jobs:
 
       - name: Instalar dependências e gerar build
         run: |
-          npm ci
+          npm install
           npm run build --prod
 
       - name: Fazer login no Docker Hub
