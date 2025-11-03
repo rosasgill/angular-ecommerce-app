@@ -57,7 +57,17 @@ jobs:
           docker build --pull -t gillrosas22/ecommerce:latest ./client
           docker push gillrosas22/ecommerce:latest
 
-      # 7️⃣ Conecta na EC2 e atualiza deployment Kubernetes
+      # 7️⃣ Copiar build Angular diretamente para EC2
+      - name: Copiar build Angular para EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          source: "client/dist/**"
+          target: "/home/ubuntu/angular-dist/"
+
+      # 8️⃣ Conecta na EC2 e atualiza deployment Kubernetes
       - name: Atualizar deployment no Kubernetes via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -65,5 +75,4 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_PRIVATE_KEY }}
           script: |
-            sudo kubectl set image deployment/frontend frontend=gillrosas22/ecommerce:latest -n app-demo
-            sudo kubectl rollout status deployment/frontend -n app-demo
+           
