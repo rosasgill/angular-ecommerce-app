@@ -16,9 +16,10 @@ jobs:
       - name: Instalar Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
 
-      - name: Instalar dependências e gerar build
+      - name: Instalar dependências e gerar build do Angular
+        working-directory: client
         run: |
           npm install
           npm run build --prod
@@ -31,7 +32,7 @@ jobs:
 
       - name: Build e Push da imagem Docker
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/angular-ecommerce-app:latest .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/angular-ecommerce-app:latest ./client
           docker push ${{ secrets.DOCKER_USERNAME }}/angular-ecommerce-app:latest
 
       - name: Acessar EC2 via SSH e atualizar Kubernetes
@@ -42,4 +43,3 @@ jobs:
           key: ${{ secrets.AWS_PRIVATE_KEY }}
           script: |
             kubectl rollout restart deployment frontend -n app-demo
-
