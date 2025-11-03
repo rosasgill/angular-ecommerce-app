@@ -60,12 +60,11 @@ jobs:
 
       # 7️⃣ Conecta na EC2 e atualiza deployment k3s
       - name: Atualizar deployment k3s na EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AWS_HOST }}
           username: ubuntu
           key: ${{ secrets.AWS_PRIVATE_KEY }}
-          port:22
           script: |
             # Forçar o k3s a usar a nova imagem
             export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
