@@ -1,21 +1,9 @@
 name: Deploy Angular to AWS EC2
 
-# Permite execução manual, ideal para forks
 on:
-  workflow_dispatch:
-    inputs:
-      docker_username:
-        description: 'Docker Hub username'
-        required: true
-      docker_password:
-        description: 'Docker Hub password or token'
-        required: true
-      aws_host:
-        description: 'AWS EC2 IP'
-        required: true
-      aws_private_key:
-        description: 'AWS private key (.pem content)'
-        required: true
+  push:
+    branches:
+      - master  
 
 jobs:
   build-and-deploy:
@@ -39,39 +27,29 @@ jobs:
           npm install --legacy-peer-deps
           npm run build --prod
 
-      # 4️⃣ Testar inputs
-      - name: Testar inputs
+      # 4️⃣ Testar se os secrets estão sendo lidos
+      - name: Testar secrets
         run: |
-          if [ -z "${{ github.event.inputs.docker_username }}" ]; then
-            echo "Docker username não fornecido!"
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "DOCKER_USERNAME não está definido!"
             exit 1
           else
-            echo "Docker username fornecido!"
+            echo "DOCKER_USERNAME está definido!"
           fi
 
-          if [ -z "${{ github.event.inputs.docker_password }}" ]; then
-            echo "Docker password/token não fornecido!"
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "DOCKER_PASSWORD não está definido!"
             exit 1
           else
-            echo "Docker password/token fornecido!"
+            echo "DOCKER_PASSWORD está definido!"
           fi
 
-          if [ -z "${{ github.event.inputs.aws_host }}" ]; then
-            echo "AWS host não fornecido!"
-            exit 1
-          fi
-
-          if [ -z "${{ github.event.inputs.aws_private_key }}" ]; then
-            echo "AWS private key não fornecida!"
-            exit 1
-          fi
-
-      # 5️⃣ Login no Docker Hub usando inputs
+      # 5️⃣ Login no Docker Hub
       - name: Login no Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ github.event.inputs.docker_username }}
-          password: ${{ github.event.inputs.docker_password }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       # 6️⃣ Build e push da imagem Docker
       - name: Build e push da imagem Docker
@@ -79,13 +57,13 @@ jobs:
           docker build --pull -t gillrosas22/ecommerce:latest ./client
           docker push gillrosas22/ecommerce:latest
 
-      # 7️⃣ Conecta na EC2 e atualiza deployment Kubernetes com sudo
+      # 7️⃣ Conecta na EC2 e atualiza deployment Kubernetes
       - name: Atualizar deployment no Kubernetes via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ github.event.inputs.aws_host }}
+          host: ${{ secrets.AWS_HOST }}
           username: ubuntu
-          key: ${{ github.event.inputs.aws_private_key }}
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
           script: |
             sudo kubectl set image deployment/frontend frontend=gillrosas22/ecommerce:latest -n app-demo
             sudo kubectl rollout status deployment/frontend -n app-demo
