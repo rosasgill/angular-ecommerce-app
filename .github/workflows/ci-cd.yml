@@ -3,7 +3,7 @@ name: Deploy Angular to AWS EC2
 on:
   push:
     branches:
-      - main  # ou master, dependendo do seu branch principal
+      - master  # ou master, dependendo do seu branch principal
 
 jobs:
   build-and-deploy:
