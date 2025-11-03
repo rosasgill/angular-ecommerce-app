@@ -18,10 +18,10 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Instalar dependências e gerar build do Angular
+      - name: Instalar dependências e gerar build do Angular (forçando resolução)
         working-directory: client
         run: |
-          npm install
+          npm install --legacy-peer-deps
           npm run build --prod
 
       - name: Fazer login no Docker Hub
